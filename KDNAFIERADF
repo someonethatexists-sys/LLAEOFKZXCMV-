@@ -1,0 +1,965 @@
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local AnimationExcludeTable = {"180435571","180426354","8987781926","14639328875","8986994076"}
+local BlockAnim = "9144013465"
+local Weapon = "Rapier"
+local KillAura = false
+local StudDistance = 4
+local FollowDistance = 12
+local FollowDistance2 = 2
+local WalkSpeed = false
+local AutoDie = false
+local AntiRagdoll = false
+local AntiFreeze = false
+local PlayerAttach = false
+local AutoFeed = false
+local IgnoreDowned = false
+local Autoequip = true
+local BodyVelocity = true
+local Whitelist = {}
+local PlayerNames = {}
+
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/nikoladhima/Fluent/refs/heads/master/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/nikoladhima/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/nikoladhima/Fluent/master/Addons/InterfaceManager.lua"))()
+local first = string.char(83, 99, 114, 105, 112, 116, 32, 102, 111, 114, 32, 97, 117, 114, 101, 117, 115, 119, 97, 118, 101, 115)
+local second = string.char(98, 121, 32, 110, 97, 105, 107, 111, 32, 101, 120, 112, 108, 111, 105, 116, 115)
+local Window = Fluent:CreateWindow({
+    Title = first,
+    SubTitle = second,
+    TabWidth = 120,
+    Size = UDim2.fromOffset(500, 460),
+    Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Aqua",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+--Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "rbxassetid://125267160035886"}),
+    Misc = Window:AddTab({ Title = "Miscellaneous", Icon = "rbxassetid://119917134759676"}),
+    Whitelist = Window:AddTab({ Title = "Whitelisting", Icon = "rbxassetid://74089336534067"}),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings"})
+}
+
+local Options = Fluent.Options
+
+--do
+
+
+local version = "2.6"
+
+--[[ BUTTON
+    Tabs.Main:AddButton({
+        Title = "Button",
+        Description = "Very important button",
+        Callback = function()
+            Window:Dialog({
+                Title = "Title",
+                Content = "This is a dialog",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            print("Confirmed the dialog.")
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Cancelled the dialog.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+]]
+
+local one = string.char(83, 99, 114, 105, 112, 116, 32, 109, 97, 100, 101, 32, 98, 121, 32, 78, 97, 105, 107, 111, 32, 69, 120, 112, 108, 111, 105, 116, 115)
+local two = string.char(65, 108, 108, 32, 111, 102, 32, 116, 104, 101, 115, 101, 32, 102, 101, 97, 116, 117, 114, 101, 115, 32, 99, 111, 109, 101, 32, 102, 114, 111, 109, 32, 110, 97, 105, 107, 111, 32, 101, 120, 112, 108, 111, 105, 116, 115, 46, 10, 67, 117, 114, 114, 101, 110, 116, 32, 115, 99, 114, 105, 112, 116, 32, 118, 101, 114, 115, 105, 111, 110, 32, 58, 32) .. version
+
+--[[ BUTTON
+    Tabs.Main:AddButton({
+        Title = "Button",
+        Description = "Very important button",
+        Callback = function()
+            Window:Dialog({
+                Title = "Title",
+                Content = "This is a dialog",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            print("Confirmed the dialog.")
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Cancelled the dialog.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+]]
+
+Tabs.Main:AddParagraph({
+    Title = one,
+    Content = two
+})
+local InterfaceSection = Tabs.Main:AddSection("Kill aura")
+    local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Kill aura", Default = false })
+
+    Toggle:OnChanged(function(Value)
+        KillAura = Value
+    end)
+
+
+    local Toggle55 = Tabs.Main:AddToggle("Mitoggle", {Title = "Ignore downed people",Description="The kill aura will ignore the people that are downed", Default = false })
+    local Toggle66 = Tabs.Main:AddToggle("Autoequip", {Title = "Auto equip weapon",Description="This will auto equip your weapon when someone is in radius", Default = true })
+
+    Toggle55:OnChanged(function(Value)
+        IgnoreDowned = Value
+       
+    end)
+
+    Toggle66:OnChanged(function(Value)
+        Autoequip = Value
+    end)
+    --Options.MyToggle:SetValue(false)
+
+--[[
+    local Dropdown = Tabs.Main:AddDropdown("Dropdown", {
+        Title = "Weapons",
+        Description = "You must pick a weapon before spawning for the killaura to work",
+        Values = {"Rapier", "Dagger", "Katana", "Caestus", "Tekko kagi", "Dual katar", "Hook swords", "Makhaira", "Chainsaw", "Kanabo", "Voulge", "Bardiche", "Fists", "Hatchets", "Flail", "Torch", "Sabre", "Scissor", "Goededag", "Scythe", "Spiked club", "Khopesh","Bo staff", "Trident", "Pickaxe", "Odachi", "Messer", "Mace", "Swordbreaker", "Gladius", "Warpick", "Republican gladius", "War hammer", "Cutlass", "Spear"},
+        Multi = false,
+        Default = 1,
+    })
+
+    --Dropdown:SetValue("four")
+
+    Dropdown:OnChanged(function(Value)
+        Weapon = Value
+    end)
+    ]]
+    
+    task.spawn(function()
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        if player ~= LocalPlayer  then
+            table.insert(PlayerNames, player.Name)
+        end
+    end
+    end)
+
+    local Studs = Tabs.Main:AddSlider("Stud", {
+        Title = "Stud Distance",
+        Description = "Killaura activattion based on the distance",
+        Default = 8,
+        Min = 4,
+        Max = 10,
+        Rounding = 0.5,
+        Callback = function(Value)
+            print("Slider was changed:", Value)
+        end
+    })
+
+    Studs:OnChanged(function(Value)
+        StudDistance = tonumber(Value)
+    end)
+
+    --Slider:SetValue(4)
+
+    local Keybind = Tabs.Main:AddKeybind("Keybind", {
+        Title = "Kill aura keybind",
+        Description="Pressing this will enable/disable killaura",
+        Mode = "Toggle", -- Always, Toggle, Hold
+        Default = "KeypadFive", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
+
+        -- Occurs when the keybind is clicked, Value is `true`/`false`
+        Callback = function(Value)
+            Toggle:SetValue(Value)
+            print("Set it to false")
+        end,
+
+        -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
+        ChangedCallback = function(New)
+            print("Keybind changed!", New)
+        end
+    })
+
+    -- OnClick is only fired when you press the keybind and the mode is Toggle
+    -- Otherwise, you will have to use Keybind:GetState()
+    --[[
+    Keybind:OnClick(function()
+        print("Keybind clicked:", Keybind:GetState())
+    end)
+
+    Keybind:OnChanged(function()
+        print("Keybind changed:", Keybind.Value)
+    end)
+
+    task.spawn(function()
+        while true do
+            wait(1)
+
+            -- example for checking if a keybind is being pressed
+            local state = Keybind:GetState()
+            if state then
+                print("Keybind is being held down")
+            end
+
+            if Fluent.Unloaded then break end
+        end
+    end)
+]]
+    local InterfaceSection = Tabs.Main:AddSection("Attach settings")
+    local Toggle2 = Tabs.Main:AddToggle("MyToggle", {Title = "Player attach", Default = false })
+
+    Toggle2:OnChanged(function(Value)
+        PlayerAttach = Value
+    end)
+
+    local Toggle5 = Tabs.Main:AddToggle("MyToggle", {Title = "Body velocity",Description="Adds body velocity on your character while attach to prevent from ragdolling", Default = true })
+
+    Toggle5:OnChanged(function(Value)
+        BodyVelocity = Value
+    end)
+
+    local Studs2 = Tabs.Main:AddSlider("Stud", {
+        Title = "Attach Distance",
+        Description = "Distance before you get attached to a player",
+        Default = 14,
+        Min = 6,
+        Max = 20,
+        Rounding = 0.5,
+        Callback = function(Value)
+            print("Slider was changed:", Value)
+        end
+    })
+
+    Studs2:OnChanged(function(Value)
+        FollowDistance = tonumber(Value)
+    end)
+
+    local Studs3 = Tabs.Main:AddSlider("Stud", {
+        Title = "Stud Distance",
+        Description = "The attach distance that you have with the player",
+        Default = 2.6,
+        Min = 0.5,
+        Max = 3.5,
+        Rounding = 1,
+        Callback = function(Value)
+            print("Slider was changed:", Value)
+        end
+    })
+Studs3:OnChanged(function(Value)
+        FollowDistance2 = tonumber(Value)
+    end)
+
+
+
+
+
+local ESPEnabled = false
+
+local function updateESPForCharacter(character)
+    task.spawn(function()
+        
+    local Connection1
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    local function updateHighlight()
+        task.spawn(function()
+            
+
+        local health = humanoid.Health
+        local maxHealth = humanoid.MaxHealth
+        local healthRatio = health / maxHealth
+        local hue = healthRatio * 0.33
+        local highlight = character:FindFirstChildOfClass("Highlight")
+        if ESPEnabled == false then
+            if highlight then
+                highlight:Destroy()
+            end
+            Connection1:Disconnect()
+            return
+        end
+        if not highlight then
+            highlight = Instance.new("Highlight")
+            highlight.OutlineTransparency = 1
+            highlight.Parent = character
+
+        end
+        highlight.FillColor = Color3.fromHSV(hue, 1, 1)
+        if health <= 0 then
+            highlight.OutlineTransparency = 0
+            highlight.FillTransparency = 0.85
+            highlight.OutlineColor = Color3.fromRGB(0, 0, 0)
+        end
+    end)
+    end
+
+    Connection1 = humanoid:GetPropertyChangedSignal("Health"):Connect(updateHighlight)
+    updateHighlight()
+end)
+end
+
+local function updateESPForPlayer(player)
+    if player ~= game.Players.LocalPlayer and not table.find(Whitelist, player.Name) then
+        player.CharacterAdded:Connect(updateESPForCharacter)
+        task.spawn(function()
+        if player.Character and ESPEnabled then
+            updateESPForCharacter(player.Character)
+        end
+    end)
+    end
+end
+
+local function ToggleESP(state)
+    ESPEnabled = state
+    if not ESPEnabled then
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+            local highlight = player.Character and player.Character:FindFirstChildOfClass("Highlight")
+            if highlight then
+                highlight:Destroy()
+            end
+        end
+    else
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+            updateESPForPlayer(player)
+        end
+    end
+end
+
+game:GetService("Players").PlayerAdded:Connect(updateESPForPlayer)
+
+task.spawn(function()
+    while true do
+        if ESPEnabled then 
+            ToggleESP(false)
+            ToggleESP(true)
+        end
+            task.wait(3) 
+    end
+end)
+
+local MiscTab = Tabs.Misc
+local ESPToggle = MiscTab:AddToggle("ESP", {
+    Title = "Enable ESP",
+    Default = false,
+    Callback = function(state)
+        ToggleESP(state)
+    end
+})
+
+    local AutoDieToggle = Tabs.Misc:AddToggle("MyToggle", {Title = "Auto die",Description="you will die if you are too low to prevent from people picking you up", Default = false })
+
+    local AntiRagdollToggle = Tabs.Misc:AddToggle("AntiRagdoll", {Title = "Anti Ragdoll",Description="Prevents you from ragdolling [BETA]", Default = false})
+
+    local AntiFreezeToggle = Tabs.Misc:AddToggle("AntiFreeze", {Title = "Anti Freeze",Description="Prevents you from getting stunned (parry)", Default = false})
+
+    local AutoFeedToggle = Tabs.Misc:AddToggle("AutoFeed", {Title = "Auto Feed",Description="Instantly feeds the person your carrying\n[NOT FUNCTIONAL]", Default = false})
+
+
+    Tabs.Misc:AddButton({
+        Title = "Crawl",
+        Description = "Makes your character start crawling",
+        Callback = function()
+            if LocalPlayer.Character ~= nil and LocalPlayer.Character:FindFirstChild("CharacterInformation") and  LocalPlayer.Character:FindFirstChild("CharacterInformation"):FindFirstChild("Crawl") then
+                LocalPlayer.Character:FindFirstChild("CharacterInformation"):FindFirstChild("Crawl").Value = true
+            else
+                Fluent:Notify({
+                    Title = "Error",
+                    Content = "Failed to crawl (maybe try spawning?)",
+                    SubContent = "", -- Optional
+                    Duration = 2.5 -- Set to nil to make the notification not disappear
+                })
+            end
+        end
+    })
+
+    local Slider = Tabs.Misc:AddSlider("Speed", {
+        Title = "WalkSpeed",
+        Description = "Your WalkSpeed anything over 35 might randomly cause to kill you\nset to 16 to disable",
+        Default = 8,
+        Min = 16,
+        Max = 38,
+        Rounding = 0.5,
+        Callback = function(Value)
+          --  print("Slider was changed:", Value)
+        end
+    })
+
+    Tabs.Misc:AddButton({
+        Title = "Rejoin",
+        Description = "Rejoins the server",
+        Callback = function()
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId,game.JobId)
+        end
+    })
+
+    local Toggle88 = Tabs.Whitelist:AddToggle("Friends", {Title = "Whitelist friends", Description = "This will prevent kill aura from targeting your friends", Default = false})
+    local Friends = {}
+    local ManualWhitelist = {}
+    local FriendsEvent = Instance.new("BindableEvent")
+    local FriendsWhitelisting = false
+    local function addToWhitelist(player)
+        if not table.find(Whitelist, player) then
+            table.insert(Whitelist, player)
+        end
+    end
+    
+    local function removeFromWhitelist(player)
+        for i, v in ipairs(Whitelist) do
+            if v == player then
+                table.remove(Whitelist, i)
+                break
+            end
+        end
+    end
+    
+    task.spawn(function()
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+            if player:IsFriendsWith(LocalPlayer.UserId) then
+                table.insert(Friends, player)
+            end
+        end
+        game.Players.PlayerRemoving:Connect(function(player)
+            if table.find(Whitelist,player) then
+                removeFromWhitelist(player)
+            end
+        end)
+
+        game:GetService("Players").PlayerAdded:Connect(function(player)
+            if player:IsFriendsWith(LocalPlayer.UserId) then
+                table.insert(Friends, player)
+                if FriendsWhitelisting == true then
+                    addToWhitelist(player)
+                end
+            end
+        end)
+    end)
+    
+    FriendsEvent.Event:Connect(function(value)
+        if value then
+            for _, player in ipairs(Friends) do
+                addToWhitelist(player)
+            end
+        else
+            for _, player in ipairs(Friends) do
+                removeFromWhitelist(player)
+            end
+        end
+    end)
+    
+    local function addManualWhitelist(player)
+        if not table.find(ManualWhitelist, player) then
+            table.insert(ManualWhitelist, player)
+            addToWhitelist(player)
+        end
+    end
+    
+    local function removeManualWhitelist(player)
+        for i, v in ipairs(ManualWhitelist) do
+            if v == player then
+                table.remove(ManualWhitelist, i)
+                removeFromWhitelist(player)
+                break
+            end
+        end
+    end
+    
+    Toggle88:OnChanged(function(Value)
+        FriendsWhitelisting = Value
+        FriendsEvent:Fire(Value)
+    end)
+    
+    local MultiDropdown = Tabs.Whitelist:AddDropdown("MultiDropdown", {
+        Title = "Whitelist Players",
+        Description = "Select players to add to the whitelist.",
+        Values = PlayerNames,
+        Multi = true,
+        Default = {},
+    })
+
+    MultiDropdown:OnChanged(function(Value)
+        local Whitelister = {}
+        for playerName, isSelected in next, Value do
+            if isSelected then
+                table.insert(Whitelister, game:GetService("Players"):FindFirstChild(playerName))
+            end
+        end
+        if FriendsWhitelisting == false then
+            Whitelist = Whitelister
+        else
+        FriendsEvent:Fire(false)
+        task.wait(0.01)
+        Whitelist = Whitelister
+        task.wait(0.01)
+        FriendsEvent:Fire(true)
+        end
+        --print("Whitelist updated:", table.concat(Whitelist, ", "))
+    end)
+
+--[[
+    
+    local MultiDropdown = Tabs.Main:AddDropdown("MultiDropdown", {
+        Title = "Dropdown",
+        Description = "You can select multiple values.",
+        Values = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"},
+        Multi = true,
+        Default = {"seven", "twelve"},
+    })
+
+    MultiDropdown:SetValue({
+        three = true,
+        five = true,
+        seven = false
+    })
+
+    MultiDropdown:OnChanged(function(Value)
+        local Values = {}
+        for Value, State in next, Value do
+            table.insert(Values, Value)
+        end
+        print("Mutlidropdown changed:", table.concat(Values, ", "))
+    end)
+
+
+
+    local Colorpicker = Tabs.Main:AddColorpicker("Colorpicker", {
+        Title = "Colorpicker",
+        Default = Color3.fromRGB(96, 205, 255)
+    })
+
+    Colorpicker:OnChanged(function()
+        print("Colorpicker changed:", Colorpicker.Value)
+    end)
+    
+    Colorpicker:SetValueRGB(Color3.fromRGB(0, 255, 140))
+
+
+
+    local TColorpicker = Tabs.Main:AddColorpicker("TransparencyColorpicker", {
+        Title = "Colorpicker",
+        Description = "but you can change the transparency.",
+        Transparency = 0,
+        Default = Color3.fromRGB(96, 205, 255)
+    })
+
+    TColorpicker:OnChanged(function()
+        print(
+            "TColorpicker changed:", TColorpicker.Value,
+            "Transparency:", TColorpicker.Transparency
+        )
+    end)
+]]
+
+--[[
+    local Keybind = Tabs.Main:AddKeybind("Keybind", {
+        Title = "KeyBind",
+        Mode = "Toggle", -- Always, Toggle, Hold
+        Default = "LeftControl", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
+
+        -- Occurs when the keybind is clicked, Value is `true`/`false`
+        Callback = function(Value)
+            print("Keybind clicked!", Value)
+        end,
+
+        -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
+        ChangedCallback = function(New)
+            print("Keybind changed!", New)
+        end
+    })
+
+    -- OnClick is only fired when you press the keybind and the mode is Toggle
+    -- Otherwise, you will have to use Keybind:GetState()
+    Keybind:OnClick(function()
+        print("Keybind clicked:", Keybind:GetState())
+    end)
+
+    Keybind:OnChanged(function()
+        print("Keybind changed:", Keybind.Value)
+    end)
+
+    task.spawn(function()
+        while true do
+            wait(1)
+
+            -- example for checking if a keybind is being pressed
+            local state = Keybind:GetState()
+            if state then
+                print("Keybind is being held down")
+            end
+
+            if Fluent.Unloaded then break end
+        end
+    end)
+
+    Keybind:SetValue("MB2", "Toggle") -- Sets keybind to MB2, mode to Hold
+
+
+    local Input = Tabs.Main:AddInput("Input", {
+        Title = "Input",
+        Default = "Default",
+        Placeholder = "Placeholder",
+        Numeric = false, -- Only allows numbers
+        Finished = false, -- Only calls callback when you press enter
+        Callback = function(Value)
+            print("Input changed:", Value)
+        end
+    })
+
+    Input:OnChanged(function()
+        print("Input updated:", Input.Value)
+    end)
+end
+]]
+
+-- Addons:
+-- SaveManager (Allows you to have a configuration system)
+-- InterfaceManager (Allows you to have a interface managment system)
+
+-- Hand the library over to our managers
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+-- Ignore keys that are used by ThemeManager.
+-- (we dont want configs to save themes, do we?)
+SaveManager:IgnoreThemeSettings()
+
+-- You can add indexes of elements the save manager should ignore
+SaveManager:SetIgnoreIndexes({})
+
+-- use case for doing it this way:
+-- a script hub could have themes in a global folder
+-- and game configs in a separate folder per game
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Script",
+    Content = "The script has loaded.",
+    Duration = 4
+})
+
+-- You can use the SaveManager:LoadAutoloadConfig() to load a config
+-- which has been marked to be one that auto loads!
+SaveManager:LoadAutoloadConfig()
+
+local Target = nil
+local Player = nil
+local IsDoing = 2
+local Event = Instance.new("BindableEvent")
+local Event2 = Instance.new("BindableEvent")
+local Event3 = Instance.new("BindableEvent")
+local Event4 = Instance.new("BindableEvent")
+
+AutoDieToggle:OnChanged(function(Value)
+    AutoDie = Value
+    Event2:Fire()
+end)
+
+AntiRagdollToggle:OnChanged(function(Value)
+    AntiRagdoll = Value
+    Event3:Fire()
+end)
+
+AntiFreezeToggle:OnChanged(function(Value)
+    AntiFreeze = Value
+    Event4:Fire()
+end)
+
+AutoFeedToggle:OnChanged(function(Value)
+    AutoFeed = Value
+end)
+
+Slider:OnChanged(function(Value)
+    if tonumber(Value) <= 16 then
+      WalkSpeed = false
+      Event:Fire(false)
+    else 
+        Event:Fire(tonumber(Value))
+      WalkSpeed = tonumber(Value)
+    end
+  end)
+
+function CheckForCharacter(character)
+    task.spawn(function()
+        
+  
+    repeat
+        task.wait()
+    until character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart")
+    local Humanoid = character:FindFirstChildOfClass("Humanoid")
+    local Connection1
+    local Connection2
+    local Connection3
+    local Connection4
+    local Connection5
+    local Connection6
+    local Connection7
+    local Connection8
+    local Connection9
+    local Connection10
+    local BodyVelInstance = Instance.new("BodyVelocity")
+    BodyVelInstance.MaxForce = Vector3.new(0,0,0)
+    BodyVelInstance.Velocity = Vector3.new(0,0,0)
+    BodyVelInstance.Parent = character:FindFirstChild("HumanoidRootPart")
+    if WalkSpeed ~= false then
+        Humanoid.WalkSpeed = WalkSpeed
+    end
+    if Humanoid.Health <= 20 and AutoDie == true then
+        Humanoid.Health = 0
+    end
+    if character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart") and character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart"):FindFirstChildOfClass("WeldConstraint") then
+        character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart"):FindFirstChildOfClass("WeldConstraint").Enabled = not AntiFreeze
+        Humanoid.AutoRotate = true
+    end
+    if AntiRagdoll ~= false then
+        if character:FindFirstChild("Ragdoll"):FindFirstChild("LocalRagdoll") then
+            character:FindFirstChild("Ragdoll"):FindFirstChild("LocalRagdoll"):Destroy()
+        end
+        character:FindFirstChild("CharacterInformation"):FindFirstChild("ForceRagdoll").Value = 0
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
+        Humanoid.AutoRotate = true
+    end
+    Connection4 = Event2.Event:Connect(function()
+        if Humanoid.Health <= 20 and AutoDie == true then
+            Humanoid.Health = 0
+        end
+    end)
+   
+    Connection8 = character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart"):FindFirstChild("BodyVelocity").Changed:Connect(function()
+        if character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart") and character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart"):FindFirstChildOfClass("WeldConstraint") then
+            character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart"):FindFirstChildOfClass("WeldConstraint").Enabled = not AntiFreeze
+            Humanoid.AutoRotate = true
+        end
+    end)
+    Connection10 = character:FindFirstChild("CharacterInformation"):FindFirstChild("IsCarryingSomeone").Changed:Connect(function()
+       if character:FindFirstChild("CharacterInformation"):FindFirstChild("IsCarryingSomeone").Value == true and AutoFeed == true then
+        Fluent:Notify({
+            Title = "Script",
+            Content = "DID IT.",
+            Duration = 2
+        })
+        task.wait(0.5)
+        fireproximityprompt(workspace.CurrentMap.Crossroads.Bull.Cow.Entrance.ProximityPrompt)
+       else
+        print("Did not do it")
+       end
+    end)
+    Connection7 = Event4.Event:Connect(function()
+        if character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart") and character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart"):FindFirstChildOfClass("WeldConstraint") then
+            character:FindFirstChild("HumanoidRootPart"):FindFirstChild("FreezePart"):FindFirstChildOfClass("WeldConstraint").Enabled = not AntiFreeze
+            Humanoid.AutoRotate = true
+        end
+    end)
+   
+    Connection6 = Humanoid:GetPropertyChangedSignal("AutoRotate"):Connect(function()
+        if AntiRagdoll ~= false then
+            if character:FindFirstChild("Ragdoll"):FindFirstChild("LocalRagdoll") then
+                character:FindFirstChild("Ragdoll"):FindFirstChild("LocalRagdoll"):Destroy()
+            end
+            character:FindFirstChild("CharacterInformation"):FindFirstChild("ForceRagdoll").Value = 0
+            Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
+            Humanoid.AutoRotate = true
+        end
+    end)
+    Connection5 = Event3.Event:Connect(function()
+        if AntiRagdoll ~= false then
+            if character:FindFirstChild("Ragdoll"):FindFirstChild("LocalRagdoll") then
+                character:FindFirstChild("Ragdoll"):FindFirstChild("LocalRagdoll"):Destroy()
+            end
+            character:FindFirstChild("CharacterInformation"):FindFirstChild("ForceRagdoll").Value = 0
+            Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
+            Humanoid.AutoRotate = true
+        end
+    end)
+
+    Connection1 = Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if WalkSpeed ~= false then
+            Humanoid.WalkSpeed = WalkSpeed
+        end
+    end)
+    Connection2 = Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+        if Humanoid.Health <= 20 and AutoDie == true then
+            Humanoid.Health = 0
+        end
+    end)
+    Connection3 = Event.Event:Connect(function(Speed)
+        if WalkSpeed ~= false then
+            Humanoid.WalkSpeed = WalkSpeed
+        end
+    end)
+    Connection9 = game:GetService("RunService").RenderStepped:Connect(function()
+        local Plr 
+        if PlayerAttach == true then
+            local ClosestPlayer = nil
+            local BiggestDistance = FollowDistance
+            for i,v in game.Players:GetPlayers() do
+                    if v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChildOfClass("Humanoid") and v.Character ~= LocalPlayer.Character and v.Character:FindFirstChildOfClass("Humanoid").Health > 20  and not table.find(Whitelist,v) then
+                        if (LocalPlayer.Character.HumanoidRootPart.Position-v.Character:FindFirstChild("HumanoidRootPart").Position).magnitude < BiggestDistance then
+                        ClosestPlayer = v
+                            BiggestDistance = (LocalPlayer.Character.HumanoidRootPart.Position-v.Character:FindFirstChild("HumanoidRootPart").Position).magnitude
+                    end
+                end
+            end
+                Plr = ClosestPlayer
+                if Plr ~= nil then
+                    character:FindFirstChild("HumanoidRootPart").CFrame = Plr.Character:FindFirstChild("HumanoidRootPart").CFrame * CFrame.new(0,1.75,FollowDistance2)
+                    if BodyVelocity == true then
+                    character:FindFirstChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity").MaxForce = Vector3.new(5000,5000,5000)
+                    else
+                    character:FindFirstChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity").MaxForce = Vector3.new(0,0,0)
+                    end
+                else
+                    character:FindFirstChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity").MaxForce = Vector3.new(0,0,0)
+                end
+            else
+                character:FindFirstChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity").MaxForce = Vector3.new(0,0,0)
+        end
+    end)
+
+    Humanoid.Died:Wait()
+    Connection1:Disconnect()
+    Connection2:Disconnect()
+    Connection3:Disconnect()
+    Connection4:Disconnect()
+    Connection5:Disconnect()
+    Connection6:Disconnect()
+    Connection7:Disconnect()
+    Connection8:Disconnect()
+end)
+end
+
+LocalPlayer.CharacterAppearanceLoaded:Connect(function(character)
+CheckForCharacter(character)
+end)
+
+CheckForCharacter(LocalPlayer.Character)
+
+if LocalPlayer.PlayerGui:FindFirstChild("SelectScreen") then
+    local Child = LocalPlayer.PlayerGui:FindFirstChild("SelectScreen")
+        local Container = Child.Main.Weapons.Container
+        for i,v in Container:GetChildren() do
+            if v:IsA("ImageLabel") then
+                v:FindFirstChildOfClass("TextButton").MouseButton1Click:Connect(function()
+                    print("Weapon changed to",v.Name)
+                    Weapon = v.Name
+                end)
+            end
+        end
+end
+
+LocalPlayer.PlayerGui.ChildAdded:Connect(function(Child)
+    task.wait()
+    if Child.Name == "SelectScreen" then
+        repeat
+            task.wait(0.01)
+        until Child:FindFirstChild("Main") and Child:FindFirstChild("Main"):FindFirstChild("Weapons") and Child:FindFirstChild("Main"):FindFirstChild("Weapons"):FindFirstChild("Container") and #Child:FindFirstChild("Main"):FindFirstChild("Weapons"):FindFirstChild("Container"):GetChildren() > 2
+        local Container = Child:FindFirstChild("Main"):FindFirstChild("Weapons"):FindFirstChild("Container")
+        task.wait()
+        for i,v in Container:GetChildren() do
+            if v:IsA("ImageLabel") then
+                v:FindFirstChildOfClass("TextButton").MouseButton1Click:Connect(function()
+                    print("Weapon changed to",v.Name)
+                    Weapon = v.Name
+                end)
+            end
+        end
+    end
+end)
+
+
+function StartKillAura()
+    task.spawn(function()
+    pcall(function()
+repeat
+    if KillAura ~= false then
+    IsDoing = 1
+    local ClosestPlayer = nil
+	local BiggestDistance = StudDistance
+	for i,v in game.Players:GetPlayers() do
+			if v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChildOfClass("Humanoid") and v.Character ~= LocalPlayer.Character and not table.find(Whitelist,v) then
+                if IgnoreDowned == true and v.Character:FindFirstChildOfClass("Humanoid").Health <= 20 then
+
+                else
+                    if (LocalPlayer.Character.HumanoidRootPart.Position-v.Character:FindFirstChild("HumanoidRootPart").Position).magnitude < BiggestDistance then
+                        ClosestPlayer = v
+                            BiggestDistance = (LocalPlayer.Character.HumanoidRootPart.Position-v.Character:FindFirstChild("HumanoidRootPart").Position).magnitude
+                    end
+                end
+				
+		end
+	end
+		Target = ClosestPlayer
+    if Target ~= nil then
+        Player = Target
+if Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("HumanoidRootPart") then
+repeat task.wait() until (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude < StudDistance
+if Player.Character ~= nil and Player.Character:FindFirstChild("HumanoidRootPart") then
+--game:GetService("TweenService"):Create(game.Players.LocalPlayer.Character.HumanoidRootPart,TweenInfo.new( (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude / 16),{CFrame = Player.Character.HumanoidRootPart.CFrame + Vector3.new(0,1,0)}):Play()
+end
+if Autoequip == true then
+if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(Weapon) then
+    if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass('Tool') then
+        game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass('Tool').Parent = game:GetService("Players").LocalPlayer.Backpack
+    end
+   game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(Weapon).Parent = game:GetService("Players").LocalPlayer.Character
+end  
+end
+if  Player.Character ~= nil and Player.Character:FindFirstChild("CharacterInformation") and Player.Character.CharacterInformation:FindFirstChild("IsParrying") and Player.Character.CharacterInformation:FindFirstChild("IsParrying").Value == false and Player.Character:FindFirstChild("Head") then
+local Tool = game:GetService("Players").LocalPlayer.Character:FindFirstChild(Weapon) or nil
+if Tool ~= nil then
+Tool.swing:FireServer()
+local args = {
+    [1] = "Dash"
+}
+game:GetService("Players").LocalPlayer.Character.CharacterFun.CharFunEvent:FireServer(unpack(args))
+local args = {
+    [1] = Player.Character.Humanoid,
+    [2] = Player.Character.Head.Position,
+    [3] = Player.Character.Head,
+    [4] = CFrame.new(-0.36261749267578125, 1.9981322288513184, -0.41706085205078125) * CFrame.Angles(-0.8881433010101318, 0.3071880340576172, 0.35605329275131226)
+}
+
+Tool.hit:FireServer(unpack(args))
+end
+else 
+    IsDoing = 1.5
+end
+else
+    IsDoing = 1.5
+end
+else 
+    IsDoing = 1.5
+end
+end
+wait()
+until game.Players.LocalPlayer.Character == nil or KillAura == false
+end)
+end)
+end
+StartKillAura()
+while true do
+    task.wait(0.1)
+    IsDoing -= 0.1
+    --print(IsDoing)
+    if IsDoing <= 0 then
+        IsDoing = 1
+        print("Started doing it again")
+        if KillAura == true then
+        StartKillAura()
+        end
+    end
+end
